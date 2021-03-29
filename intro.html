@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="./node_modules/bootstrap/dist/css/bootstrap.css"
+        rel="stylesheet"/>
+  <link href="./node_modules/bootstrap-icons/font/bootstrap-icons.css"
+        rel="stylesheet"/>
+  <title>A short intro to web frameworks
+  </title>
+</head>
+<body>
+  <div class="container-sm">
+    <div class="row">
+      <div class="col">
+        <h1>Web Frameworks - what they do and why</h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <p>
+          Web apps are build on three technologies - html, the DOM, and
+          javascript. There's a lot of overlap between the three, and they're
+          all connected, but they represent different concepts.
+        </p>
+        <p>
+          Html is a mark-up language that looks a little bit like XML, but is
+          not compatible with XML (at least Html5 is not.) Html is used to
+          define things as buttons, or headlines, or just normal text, and to
+          split the viewport of the browser into different sections. Here's an
+          example:
+        </p>
+        <script src="https://gist.github.com/trb/ed128e4349a12986d0c6e3ea0b159330.js"></script>
+        <p>
+          And it looks like this:
+        </p>
+        <p>
+          <div class="card">
+            <div class="card-body">
+              <span>Is this a cool website?</span>
+              <button onclick="alert('hooray')">Yes</button>
+            </div>
+          </div>
+        </p>
+        <p>
+          There's a fixed list of tags or nodes that Html supports, for
+          example <code>a, ul or table</code> for links
+          (<strong>a</strong>nchor), lists (<strong>u</strong>nsorted <strong>l</strong>ist), and tables.
+        </p>
+        <p>
+          Some tags can be nested in others, and some can accept specific
+          attributes. In this example we use the <code>onclick</code> attribute
+          to make the button react to clicks.
+        </p>
+        <p>
+          Which takes us to the next topic - Javascript.
+          <code>alert('hooray')</code>
+          is a simple Javascript function that
+          tells the browser to create a popup window. It accepts a simple
+          string parameter and uses it for the content of the popup.
+        </p>
+        <p>
+          This example creates a very simple interaction, just a button that
+          creates a pop up. If there was any business logic included, e.g.
+          embedding a form in a popup and checking that it's values are valid,
+          then obviously the above approach does not work out. We can't embed
+          business logic in our view templates!
+        </p>
+        <p>
+          Enter the DOM, the document object model. The browser parses out the
+          Html document, and makes it modifiable via Javascript through the
+          DOM api.
+        </p>
+        <p>
+          Let's change the example html a little bit:
+        </p>
+        <script src="https://gist.github.com/trb/f9e145e3ab0b74c60b8cdad16a387f35.js"></script>
+        <p>
+          Very similar, but we've removed the inline
+          <code>onclick="alert('hooray')"</code> attribute and instead added an
+          <code>id</code> attribute. This will allow us to access the button
+          via the DOM from Javascript:
+        </p>
+        <script src="https://gist.github.com/trb/98f21e33c281aa5c2fda2fa181f5655d.js"></script>
+        <p>
+          So now we use the DOM to access the button-tag and manage our
+          interaction from our code, our view template is now clean and simple.
+        </p>
+        <p>
+          Here should be an example of how to create and modify DOM nodes. Then
+          move on to make the DOM completely generated via Javascript. Create
+          some functions that add DOM nodes to other DOM nodes. Show how these
+          relate to React components. Show how managing state quickly becomes
+          an issue, and how various frameworks solve this - react redux,
+          react with useReducer and context, svelte, angular.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
