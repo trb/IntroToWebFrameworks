@@ -7,11 +7,32 @@
         rel="stylesheet"/>
   <link href="./node_modules/bootstrap-icons/font/bootstrap-icons.css"
         rel="stylesheet"/>
+  <style type="text/css">
+    .container {
+        width: 48rem
+    }
+  </style>
   <title>A short intro to web frameworks
   </title>
+  <script type="text/javascript">
+    window.api = {
+      "todos": [
+        {
+          "id": 1,
+          "title": "Create api server",
+          "done": false
+        },
+        {
+          "id": 2,
+          "title": "Create CI build to push AMIs into ASGs",
+          "done": false
+        }
+      ]
+    }
+  </script>
 </head>
 <body>
-  <div class="container-sm">
+  <div class="container container-sm">
     <div class="row">
       <div class="col">
         <h1>Web Frameworks - what they do and why</h1>
@@ -89,9 +110,319 @@
           interaction from our code, our view template is now clean and simple.
         </p>
         <p>
-          Here should be an example of how to create and modify DOM nodes. Then
-          move on to make the DOM completely generated via Javascript. Create
-          some functions that add DOM nodes to other DOM nodes. Show how these
+          So those are the basic building blocks of a web app. Html is parsed
+          by the browser into the DOM which is accessible via Javascript to
+          interact with.
+        </p>
+        <h2>
+          Dynamic Html
+        </h2>
+        <p>
+          Web apps are good at allowing users to interact with servers. The
+          very simple example doesn't quite show how that's achieved, so lets
+          get into something meatier.
+        </p>
+        <p>
+          The DOM doesn't just allow interacting with existing Html, but also
+          supports adding new nodes, and updating or removing existing ones.
+        </p>
+        <p>
+          Let's use the ubiquitous example of a Todo List app. Here's what our
+          fake api will serve:
+        </p>
+        <script src="https://gist.github.com/trb/4e294388f6f791c116072f3db1b530de.js"></script>
+        <p>
+          Now we want to show a list of those Todo items. To support that, we
+          need an entry point. In most web apps, the Html that's actually
+          served to the browser is very simple, and only serves as a rough
+          skeleton to be filled in by the app itself. Here's our skeleton:
+        </p>
+        <script src="https://gist.github.com/trb/3dcbfcb4a45210d6fa744a7fa94707ab.js"></script>
+        <p>
+          <div class="card">
+            <div class="card-body">
+              <div class="menu">
+                <a href="/">Todo List App</a>
+              </div>
+              <div class="content">
+              </div>
+            </div>
+          </div>
+        </p>
+        <p>
+          The next examples will use the same skeleton, but with increasing
+          <code>v${exampleNumber}</code> class attribute, so
+          <code>v2</code>, <code>v3</code> and so on. For brevity I won't
+          repeat the skeleton Html, but you'll see the version in the root
+          node selector.
+        </p>
+        <p>
+          That's not very impressive, but it serves as our starting point. We
+          will use the element with the <code>id="content"</code> attribute as
+          the entry point for our app. Here's what the Javascript would look
+          like:
+        </p>
+        <script src="https://gist.github.com/trb/deb33e9954994f0ad77255eaefafa65a.js"></script>
+        <div class="card v1">
+          <div class="card-body">
+            <div class="menu">
+              <a href="/">Todo List App</a>
+            </div>
+            <div class="content">
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript">
+          (function() {
+            const root = document.querySelector('.v1 .content')
+            root.innerHTML = api.todos.map(todo => `<span>${todo.title}</span>`).join('<br />')
+          })()
+        </script>
+        <p>
+          This is the basic principle behind loading data from an api, and then
+          turning it into Html for the user to interact with.
+        </p>
+        <p>
+          This is still a very simple way of interacting with the DOM. We're
+          just replacing the entire content of the entry node with new Html that
+          the browser has to parse. If you're building a large app with many
+          elements that all could update individually, this approach will not
+          work.
+        </p>
+        <p>
+          Every web request that completes will make your app flicker and flash,
+          and you'd also start using a lot of processing power on mobile
+          devices, quickly draining their battery.
+        </p>
+        <p>
+          Instead, the DOM offers apis to create new nodes and insert them into
+          parent nodes. This enables us to only update specific nodes, without
+          re-rendering the entire app. Let's do just that with our todo list:
+        </p>
+        <script src="https://gist.github.com/trb/67d671af7f5957885be14c06e4177cb2.js"></script>
+        <div class="card v2">
+          <div class="card-body">
+            <div class="menu">
+              <a href="/">Todo List App</a>
+            </div>
+            <div class="content">
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript">
+          (function() {
+            const root = document.querySelector('.v2 .content')
+            api.todos.forEach(todo => {
+              const todoItem = document.createElement('div')
+              const todoTitle = document.createElement('span')
+              todoTitle.innerText = todo.title
+              todoItem.appendChild(todoTitle)
+              root.appendChild(todoItem)
+            })
+          })()
+        </script>
+        <p>
+          So that's how we can assemble a DOM tree dynamically. Let's add a
+          checkbox that we can use to mark the todo item as completed:
+        </p>
+        <script src="https://gist.github.com/trb/53e1c6db78d9e1379223d00f907633db.js"></script>
+        <div class="card v3">
+          <div class="card-body">
+            <div class="menu">
+              <a href="/">Todo List App</a>
+            </div>
+            <div class="content">
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript">
+          (function() {
+            const root = document.querySelector('.v3 .content')
+            api.todos.forEach(todo => {
+              const todoItem = document.createElement('div')
+              const todoTitle = document.createElement('span')
+              todoTitle.innerText = todo.title
+
+              const todoCheckbox = document.createElement('input')
+              todoCheckbox.setAttribute('type', 'checkbox')
+              todoCheckbox.className = `check-${todo.id}`
+
+              todoItem.appendChild(todoCheckbox)
+              todoItem.appendChild(todoTitle)
+
+              root.appendChild(todoItem)
+            })
+          })()
+        </script>
+        <p>
+          But it kind-of sucks to just create these nodes every time, and we
+          can't re-use the todo-list node creation code either. Let's refactor
+          a little:
+        </p>
+        <script src="https://gist.github.com/trb/f2565c73dab3a988ef481421fe668775.js"></script>
+        <div class="card v4">
+          <div class="card-body">
+            <div class="menu">
+              <a href="/">Todo List App</a>
+            </div>
+            <div class="content">
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript">
+          (function() {
+            const root = document.querySelector('.v4 .content')
+            const todoTitle = title => {
+              const todoTitle = document.createElement('span')
+              todoTitle.innerText = title
+              return todoTitle
+            }
+            const todoCheckbox = id => {
+              const todoCheckbox = document.createElement('input')
+              todoCheckbox.setAttribute('type', 'checkbox')
+              todoCheckbox.className = `check-${id}`
+              return todoCheckbox
+            }
+            const todoItem = todo => {
+              const todoItem = document.createElement('div')
+              todoItem.appendChild(todoCheckbox(todo.id))
+              todoItem.appendChild(todoTitle(todo.title))
+              return todoItem
+            }
+            api.todos.forEach(todo => {
+              root.appendChild(todoItem(todo))
+            })
+          })()
+        </script>
+        <p>
+          That's fundamentally what React components do. Of course React does
+          a lot more to improve performance and offer lifecycle management
+          (ie reacting to nodes being mounted/unmounted), but on a very
+          high-level, React components create DOM nodes, just like our example
+          here.
+        </p>
+        <p>
+          Let's enhance the app with some interactivity. Right now clicking on
+          the checkboxes doesn't really do much, so lets add an event handler
+          that will toggle the <code>done</code> flag, and adds a strike-
+          through effect to the text.
+        </p>
+        <p>
+          A few considerations - we don't want to modify our global mock data,
+          so we'll make a local copy. We also don't want to change things in
+          place, so we'll create a <code>render</code> function that will
+          update the entire app based on the current state.
+        </p>
+        <p>
+          This will allow us to add an event listener to the checkbox, update
+          the state when it's toggled, and re-render after the state update.
+        </p>
+        <p>
+          For this example I've added a css class that allows us to make a
+          todo-item appear with a strike-through:
+          <code>
+            .done {
+              text-decoration: line-through;
+            }
+          </code>
+        </p>
+        <script src="https://gist.github.com/trb/8abef38433bc5c8ddc7c0674fa0a46f4.js"></script>
+        <div class="card v5">
+          <style type="text/css">
+            .done {
+                text-decoration: line-through;
+            }
+          </style>
+          <div class="card-body">
+            <div class="menu">
+              <a href="/">Todo List App</a>
+            </div>
+            <div class="content">
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript">
+          (function() {
+            const api = {...window.api}
+            const root = document.querySelector('.v5 .content')
+            const todoTitle = title => {
+              const todoTitle = document.createElement('span')
+              todoTitle.innerText = title
+              return todoTitle
+            }
+            const todoCheckbox = ({id, checked}) => {
+              const todoCheckbox = document.createElement('input')
+              todoCheckbox.setAttribute('type', 'checkbox')
+              todoCheckbox.className = `check-${id}`
+              todoCheckbox.checked = checked
+
+              todoCheckbox.addEventListener('change', () => {
+                api.todos = api.todos.map(oldTodo => {
+                  if (oldTodo.id === id) {
+                    return {
+                      ...oldTodo,
+                      done: !oldTodo.done
+                    }
+                  } else {
+                    return oldTodo
+                  }
+                })
+                render(api)
+              })
+
+              return todoCheckbox
+            }
+            const todoItem = todo => {
+              const todoItem = document.createElement('div')
+              if (todo.done) {
+                todoItem.className = 'done'
+              }
+              todoItem.appendChild(todoCheckbox({
+                id: todo.id,
+                checked: todo.done
+              }))
+              todoItem.appendChild(todoTitle(todo.title))
+              return todoItem
+            }
+            const render = state => {
+              while (root.firstChild) {
+                root.removeChild(root.lastChild)
+              }
+              state.todos.forEach(todo => {
+                root.appendChild(todoItem(todo))
+              })
+            }
+            render(api)
+          })()
+        </script>
+        <p>
+          We can now control the appearance of a todo-item based on flags in
+          the underlying data. We can modify the state, and re-render everything
+          with the new state applied.
+        </p>
+        <p>
+          But lets take a look at the event listener. We never unregister the
+          listener on a DOM node, we simply remove the entire DOM node on every
+          render. Browsers might not release this event handler, and we have a
+          memory leak. In large apps this can lead to very large memory
+          consumption.
+        </p>
+        <p>
+          React and other frameworks really do the heavy lifting by taking care
+          of these details. They use some mechanism to match the DOM tree to
+          the state, and offer transitions for each DOM node. Instead of simply
+          removing all nodes and re-adding them the way we do, they keep track
+          of which nodes the app generated, and which nodes are in the browser
+          DOM, and they remove/add/update nodes as necessary.
+        </p>
+        <p>
+          That's what makes React so powerful. We can simply nest React
+          components that accept some input data and are re-run when the input
+          data changes. We don't have to React to events, or detect existing
+          nodes, or anything like that - React handles all of that for us.
+        </p>
+        <p>
+          Show how these
           relate to React components. Show how managing state quickly becomes
           an issue, and how various frameworks solve this - react redux,
           react with useReducer and context, svelte, angular.
