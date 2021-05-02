@@ -401,31 +401,156 @@
           with the new state applied.
         </p>
         <p>
-          But lets take a look at the event listener. We never unregister the
-          listener on a DOM node, we simply remove the entire DOM node on every
-          render. Browsers might not release this event handler, and we have a
-          memory leak. In large apps this can lead to very large memory
-          consumption.
+          This is still very inefficient, though. We're still essentially
+          re-rendering the entire app when any data changes. If we had a complex
+          app with thousands of nodes this would lead to a very noticeable delay
+          between interaction and UI update.
         </p>
         <p>
-          React and other frameworks really do the heavy lifting by taking care
-          of these details. They use some mechanism to match the DOM tree to
-          the state, and offer transitions for each DOM node. Instead of simply
-          removing all nodes and re-adding them the way we do, they keep track
-          of which nodes the app generated, and which nodes are in the browser
-          DOM, and they remove/add/update nodes as necessary.
+          There's a better way. All we need is a system that links our
+          components to the DOM, checks whether the components parameters have
+          changed and only updates if there's a change.
         </p>
         <p>
-          That's what makes React so powerful. We can simply nest React
-          components that accept some input data and are re-run when the input
-          data changes. We don't have to React to events, or detect existing
-          nodes, or anything like that - React handles all of that for us.
+          Let's take a stab at adding that functionality to our little
+          framework.
+        </p>
+        <div class="card v6">
+          <style type="text/css">
+              .done {
+                  text-decoration: line-through;
+              }
+          </style>
+          <div class="card-body">
+            <div class="menu">
+              <a href="/">Todo List App</a>
+            </div>
+            <div class="content">
+            </div>
+          </div>
+        </div>
+        <script type="text/javascript">
+          (function() {
+            const api = {...window.api}
+            const root = document.querySelector('.v6 .content')
+            const todoTitle = title => {
+              const todoTitle = document.createElement('span')
+              todoTitle.innerText = title
+              return todoTitle
+            }
+            const todoCheckbox = ({id, checked}) => {
+              const todoCheckbox = document.createElement('input')
+              todoCheckbox.setAttribute('type', 'checkbox')
+              todoCheckbox.className = `check-${id}`
+              todoCheckbox.checked = checked
+
+              todoCheckbox.addEventListener('change', () => {
+                api.todos = api.todos.map(oldTodo => {
+                  if (oldTodo.id === id) {
+                    return {
+                      ...oldTodo,
+                      done: !oldTodo.done
+                    }
+                  } else {
+                    return oldTodo
+                  }
+                })
+                render(api)
+              })
+
+              return todoCheckbox
+            }
+            const todoItem = todo => {
+              const todoItem = document.createElement('div')
+              if (todo.done) {
+                todoItem.className = 'done'
+              }
+              todoItem.appendChild(todoCheckbox({
+                id: todo.id,
+                checked: todo.done
+              }))
+              todoItem.appendChild(todoTitle(todo.title))
+              return todoItem
+            }
+            const todosCache = {}
+            const render = state => {
+              state.todos.forEach(todo => {
+                const id = `todo-${todo.id}`
+
+                let hasChild = false
+                let child = null
+                for (let i = 0; i < root.childNodes.length; ++i) {
+                  if (root.childNodes[i].id === id) {
+                    hasChild = true
+                    child = root.childNodes[i]
+                  }
+                }
+
+                if (!hasChild) {
+                  const newTodo = todoItem(todo)
+                  newTodo.id = id
+                  root.appendChild(newTodo)
+                  todosCache[id] = todo
+                  console.log('added new child')
+                  return
+                }
+
+                if (todosCache[id] !== todo) {
+                  const newTodo = todoItem(todo)
+                  newTodo.id = id
+                  todosCache[id] = todo
+                  root.replaceChild(newTodo, child)
+                  console.log('replaced child')
+                  return
+                }
+              })
+            }
+            render(api)
+          })()
+        </script>
+        <script src="https://gist.github.com/trb/28e532412e3009ca19e057f213b2559c.js"></script>
+        <p>
+          If you open the developer tools and watch the console tab, you can
+          see that clicking a todo item repeatedly only outputs "replaced child"
+          once.
         </p>
         <p>
-          Show how these
-          relate to React components. Show how managing state quickly becomes
-          an issue, and how various frameworks solve this - react redux,
-          react with useReducer and context, svelte, angular.
+          Unlike before, where we replaced every child on any state change, we
+          now check whether a todo item actually changed, and only replace the
+          specific todo item. So even if we had thousands of todo items in this
+          list, the interface would still be fast as we only replace a single
+          node.
+        </p>
+        <p>
+          Conceptually, we are now memoizing the node generation - at least at
+          the top level. We could add another step to check if we have todos
+          in <code>todosCache</code> that aren't present in
+          <code>state.todos</code> and remove the associated nodes.
+        </p>
+        <p>
+          Let's recap. We have a system that can generate components for our
+          app (e.g. <code>todoItem()</code>, and we have a way to link the
+          components to actual nodes in the DOM, and only change nodes if the
+          underlying data changed.
+        </p>
+        <p>
+          That's in principal what React does for us. It provides a way to
+          write isolated and reusable components without having to directly
+          interact with the browsers DOM in an imperative way. Instead, React
+          detects whether the parameters to a DOM node have changed, figures
+          out how to update the DOM in the smallest number of changes and then
+          executes those changes.
+        </p>
+        <p>
+          That's what makes React so powerful. It allows us to write apps with
+          a lot of components, that change when the state is changed (instead
+          of when an event is executed), and still remain snappy and update
+          quickly.
+        </p>
+        <p>
+          If you're interested in more details on how React works internally,
+          <a href="https://pomb.us/build-your-own-react/">is a great tutorial
+          on how to build your own React.</a>
         </p>
       </div>
     </div>
